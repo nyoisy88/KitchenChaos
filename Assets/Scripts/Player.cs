@@ -14,7 +14,7 @@ public class Player : MonoBehaviour
     [SerializeField] private LayerMask counterLayerMask;
 
     private bool _isWalking;
-    private Vector3 _lastMoveDir;
+    private Vector3 _lastInteractDir;
     private ClearCounter _selectedCounter;
 
     #region unity methods
@@ -39,6 +39,7 @@ public class Player : MonoBehaviour
         HandleInteraction();
     }
 
+    #endregion
     private void HandleInteraction()
     {
         Vector2 inputVector = gameInput.GetMovementVectorNormalized();
@@ -46,11 +47,11 @@ public class Player : MonoBehaviour
 
         if (moveDir != Vector3.zero)
         {
-            _lastMoveDir = moveDir;
+            _lastInteractDir = moveDir;
         }
 
         float interactDistance = 1.5f;
-        if (Physics.Raycast(transform.position, _lastMoveDir, out RaycastHit raycastHit,
+        if (Physics.Raycast(transform.position, _lastInteractDir, out RaycastHit raycastHit,
                 interactDistance, counterLayerMask))
         {
             if (raycastHit.transform.TryGetComponent(out ClearCounter clearCounter))
@@ -71,8 +72,6 @@ public class Player : MonoBehaviour
         }
     }
 
-    #endregion
-
     private void HandleMovement()
     {
         Vector2 inputVector = gameInput.GetMovementVectorNormalized();
@@ -89,22 +88,28 @@ public class Player : MonoBehaviour
         {
             // Check wall direction to move alongside
             Vector3 moveDirX = new Vector3(moveDir.x, 0, 0);
-            bool canMoveX = !Physics.CapsuleCast(transform.position, transform.position + (Vector3.up * playerHeight),
+            canMove = moveDir.x != 0 && !Physics.CapsuleCast(transform.position, transform.position + (Vector3.up * playerHeight),
                 playerRadius, moveDirX, moveDistance);
-            if (canMoveX)
+            if (canMove)
             {
                 moveDir = moveDirX;
             }
             else
             {
                 Vector3 moveDirZ = new Vector3(0, 0, moveDir.z);
-                bool canMoveZ = !Physics.CapsuleCast(transform.position, transform.position + (Vector3.up * playerHeight),
+                canMove = moveDir.z != 0 && !Physics.CapsuleCast(transform.position, transform.position + (Vector3.up * playerHeight),
                     playerRadius, moveDirZ, moveDistance);
-                moveDir = canMoveZ ? moveDirZ : Vector3.zero;
+                if ( canMove )
+                {
+                    moveDir = moveDirZ;
+                }
             }
         }
 
-        transform.position += moveDir * moveDistance;
+        if (canMove)
+        {
+            transform.position += moveDir * moveDistance;
+        }
 
         _isWalking = moveDir != Vector3.zero;
 
@@ -128,7 +133,7 @@ public class Player : MonoBehaviour
 
     private void GameInput_OnInteractAction(object sender, EventArgs e)
     {
-        if (_selectedCounter)
+        if (_selectedCounter != null)
         {
             _selectedCounter.Interact();
         }

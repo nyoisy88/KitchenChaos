@@ -1,54 +1,52 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 public class ClearCounter : MonoBehaviour
 {
     [SerializeField] private Transform kitchenObjectPrefab;
     [SerializeField] private Transform counterTopPoint;
     [SerializeField] private bool testing = false;
-    [SerializeField] private ClearCounter clearCounter2;
+    [SerializeField] private ClearCounter secondClearCounter;
 
     private KitchenObject _kitchenObject;
 
     private void Update()
     {
-        if (testing && clearCounter2)
+        if (testing && Input.GetKeyDown(KeyCode.T))
         {
-            if (Input.GetKeyDown(KeyCode.T))
+            if (_kitchenObject != null)
             {
-                _kitchenObject.SetKitchenObjectParent(clearCounter2);
+                _kitchenObject.SetKitchenObjectParent(secondClearCounter);
             }
         }
+    }
+
+    public void Interact()
+    {
+        if (_kitchenObject == null)
+        {
+            Transform kitchenObjectTransform = Instantiate(kitchenObjectPrefab, counterTopPoint);
+            kitchenObjectTransform.GetComponent<KitchenObject>().SetKitchenObjectParent(this);
+        }
+        else
+        {
+            Debug.Log(_kitchenObject.gameObject);
+        }
+        
     }
 
     public void SetKitchenObject(KitchenObject kitchenObject)
     {
         _kitchenObject = kitchenObject;
-        
-    }
 
-    public void Interact()
-    {
-        Debug.Log("Interact");
-        if (_kitchenObject)
-        {
-            return;
-        }
-        Transform kitchenObjectTransform = Instantiate(kitchenObjectPrefab, counterTopPoint);
-        kitchenObjectTransform.GetComponent<KitchenObject>().SetKitchenObjectParent(this);
     }
-
-    public Transform GetKitchenObjectPoint()
+    public Transform GetKitchenObjectFollowTransform()
     {
         return counterTopPoint;
     }
 
     public bool HasKitchenObject()
     {
-        return _kitchenObject;
+        return _kitchenObject != null;
     }
 
     public KitchenObject GetKitchenObject()

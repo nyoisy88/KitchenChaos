@@ -21,13 +21,13 @@ public class KitchenObject : MonoBehaviour
             return;
         }
 
-        if (_kitchenObjectParent)
+        if (_kitchenObjectParent != null)
         {
             _kitchenObjectParent.ClearKitchenObject();
         }
         _kitchenObjectParent = clearCounter;
         _kitchenObjectParent.SetKitchenObject(this);
-        transform.parent = _kitchenObjectParent.GetKitchenObjectPoint();
+        transform.parent = _kitchenObjectParent.GetKitchenObjectFollowTransform();
         transform.localPosition = Vector3.zero;
     }
 }
