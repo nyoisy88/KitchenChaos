@@ -1,17 +1,27 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CuttingCounter : BaseCounter
+public class CuttingCounter : BaseCounter, IHasProgress
 {
+    public event EventHandler<IHasProgress.OnProgressChangedEventArgs> OnProgressChanged;
+    public event EventHandler OnCut;
+
     [SerializeField] private CuttingRecipeSO[] cuttingRecipeSOArray;
+
+    private int cutProgress;
+    private CuttingRecipeSO currentCuttingRecipeSO;
 
     public override void Interact(Player player)
     {
-        if (player.HasKitchenObject() && HasOutputFromInput(player.GetKitchenObject().GetKitchenObjectSO()))
+        if (player.HasKitchenObject())
         {
-            if (!HasKitchenObject())
+        
+            if (TryGetCuttingRecipeSOFromInput(player.GetKitchenObject().GetKitchenObjectSO(), out CuttingRecipeSO cuttingRecipeSO) 
+                && !HasKitchenObject())
             {
+                currentCuttingRecipeSO = cuttingRecipeSO;
                 player.GetKitchenObject().SetKitchenObjectParent(this);
             }
         }
@@ -20,49 +30,70 @@ public class CuttingCounter : BaseCounter
             if (HasKitchenObject())
             {
                 GetKitchenObject().SetKitchenObjectParent(player);
+                currentCuttingRecipeSO = null;
+                ResetProgress();
             }
         }
     }
 
     public override void InteractAlt()
     {
-        if (HasKitchenObject() && TryGetOutputForInput(GetKitchenObject().GetKitchenObjectSO(), out KitchenObjectSO inputKitchenObjectSO))
+        if (HasKitchenObject() && currentCuttingRecipeSO != null)
         {
-            GetKitchenObject().DestroySelf();
-            KitchenObjectSO output = GetOutputFromInput(inputKitchenObjectSO);
-            KitchenObject.SpawnKitchenObject(output, this);
+
+            cutProgress++;
+
+            OnCut?.Invoke(this, EventArgs.Empty);
+
+            OnProgressChanged?.Invoke(this, new IHasProgress.OnProgressChangedEventArgs()
+            {
+                progressNormalized = (float)cutProgress / currentCuttingRecipeSO.cuttingNumberMax
+            });
+            if (cutProgress >= currentCuttingRecipeSO.cuttingNumberMax)
+            {
+                GetKitchenObject().DestroySelf();
+                KitchenObject.SpawnKitchenObject(currentCuttingRecipeSO.output, this);
+                currentCuttingRecipeSO = null;
+            }
+
         }
     }
 
-    private KitchenObjectSO GetOutputFromInput(KitchenObjectSO kitchenObjectSO)
+    private void ResetProgress()
+    {
+        cutProgress = 0;
+        OnProgressChanged?.Invoke(this, new IHasProgress.OnProgressChangedEventArgs()
+        {
+            progressNormalized = 0
+        });
+    }
+
+    private CuttingRecipeSO GetCuttingRecipeSOFromInput(KitchenObjectSO kitchenObjectSO)
     {
         foreach (CuttingRecipeSO recipe in cuttingRecipeSOArray)
         {
             if (kitchenObjectSO == recipe.input)
             {
-                return recipe.output;
+                return recipe;
             }
         }
         return null;
     }
 
-    private bool HasOutputFromInput(KitchenObjectSO kitchenObjectSO)
+    private KitchenObjectSO GetOutputFromInput(KitchenObjectSO kitchenObjectSO)
     {
-        return GetOutputFromInput(kitchenObjectSO) != null;
+        CuttingRecipeSO cuttingRecipeSO = GetCuttingRecipeSOFromInput(kitchenObjectSO);
+        return (cuttingRecipeSO != null) ? cuttingRecipeSO.output : null ;
     }
 
-    private bool TryGetOutputForInput(KitchenObjectSO kitchenObjectSO, out KitchenObjectSO output)
+    private bool HasOutputFromInput(KitchenObjectSO kitchenObjectSO)
     {
-        foreach (CuttingRecipeSO recipe in cuttingRecipeSOArray)
-        {
-            if (kitchenObjectSO == recipe.input)
-            {
-                output = recipe.output;
-                return true;
-            }
-        }
+        return GetCuttingRecipeSOFromInput(kitchenObjectSO) != null;
+    }
 
-        output = null;
-        return false;
+    private bool TryGetCuttingRecipeSOFromInput(KitchenObjectSO kitchenObjectSO, out CuttingRecipeSO cuttingRecipeSO)
+    {
+        cuttingRecipeSO = GetCuttingRecipeSOFromInput(kitchenObjectSO);
+        return cuttingRecipeSO != null;
     }
 }

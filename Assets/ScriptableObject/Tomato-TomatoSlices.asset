@@ -10,7 +10,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a8e04f4411d983c4c808e85e038735cb, type: 3}
-  m_Name: Tomato-TomatoSlice
+  m_Name: Tomato-TomatoSlices
   m_EditorClassIdentifier: 
   input: {fileID: 11400000, guid: 2993c69c7d7f6d742b95583526a9ae6a, type: 2}
   output: {fileID: 11400000, guid: 79a950bdf4a36554bad10b7eb2cf4abc, type: 2}
+  cuttingNumberMax: 3

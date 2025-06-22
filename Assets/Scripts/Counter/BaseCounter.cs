@@ -13,7 +13,7 @@ public class BaseCounter : MonoBehaviour, IKitchenObjectParent
 
     public virtual void InteractAlt()
     {
-        Debug.LogError("BaseCounter.InteractAlt()");
+        Debug.Log("BaseCounter.InteractAlt()");
     }
 
     public void SetKitchenObject(KitchenObject kitchenObject)
