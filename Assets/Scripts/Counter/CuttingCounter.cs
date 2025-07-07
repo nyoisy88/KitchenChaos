@@ -17,12 +17,42 @@ public class CuttingCounter : BaseCounter, IHasProgress
     {
         if (player.HasKitchenObject())
         {
-        
-            if (TryGetCuttingRecipeSOFromInput(player.GetKitchenObject().GetKitchenObjectSO(), out CuttingRecipeSO cuttingRecipeSO) 
-                && !HasKitchenObject())
+
+            if (!HasKitchenObject())
             {
-                currentCuttingRecipeSO = cuttingRecipeSO;
-                player.GetKitchenObject().SetKitchenObjectParent(this);
+                if (TryGetCuttingRecipeSOFromInput(player.GetKitchenObject().GetKitchenObjectSO(),
+                    out CuttingRecipeSO cuttingRecipeSO))
+                {
+                    currentCuttingRecipeSO = cuttingRecipeSO;
+                    player.GetKitchenObject().SetKitchenObjectParent(this);
+                }
+
+                return;
+            }
+
+            KitchenObject playerKO = player.GetKitchenObject();
+            KitchenObject thisKO = GetKitchenObject();
+
+            // Case 1: Player is holding a plate
+            if (playerKO.TryGetPlate(out PlateKitchenObject playerPlate))
+            {
+                if (playerPlate.TryAddIngredient(thisKO.GetKitchenObjectSO()))
+                {
+                    thisKO.DestroySelf();
+                    ResetProgress();
+                }
+                return;
+            }
+
+            // Case 2: This counter has a plate
+            if (thisKO.TryGetPlate(out PlateKitchenObject counterPlate))
+            {
+                if (counterPlate.TryAddIngredient(playerKO.GetKitchenObjectSO()))
+                {
+                    playerKO.DestroySelf();
+                    ResetProgress();
+                }
+                return;
             }
         }
         else
@@ -83,7 +113,7 @@ public class CuttingCounter : BaseCounter, IHasProgress
     private KitchenObjectSO GetOutputFromInput(KitchenObjectSO kitchenObjectSO)
     {
         CuttingRecipeSO cuttingRecipeSO = GetCuttingRecipeSOFromInput(kitchenObjectSO);
-        return (cuttingRecipeSO != null) ? cuttingRecipeSO.output : null ;
+        return (cuttingRecipeSO != null) ? cuttingRecipeSO.output : null;
     }
 
     private bool HasOutputFromInput(KitchenObjectSO kitchenObjectSO)
