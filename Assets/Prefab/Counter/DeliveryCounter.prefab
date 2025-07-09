@@ -134,7 +134,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   visualGameObjects:
   - {fileID: 7199136559717522677}
-  baseCounter: {fileID: 0}
+  baseCounter: {fileID: 4310619259583605798}
 --- !u!1001 &5063625453103745331
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -215,6 +215,12 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 4310619259583605798}
   m_SourcePrefab: {fileID: 100100000, guid: 1afb2de786827c647b4b8e0b01700db8, type: 3}
+--- !u!4 &3712283927826045626 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 8485118239265166217, guid: 1afb2de786827c647b4b8e0b01700db8,
+    type: 3}
+  m_PrefabInstance: {fileID: 5063625453103745331}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &5820412925930288535 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1622384599659887780, guid: 1afb2de786827c647b4b8e0b01700db8,
@@ -239,6 +245,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aa0c4536943e4fa48aede5dc45dbbf82, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  counterTopPoint: {fileID: 3712283927826045626}
 --- !u!1001 &6005993056922920292
 PrefabInstance:
   m_ObjectHideFlags: 0
