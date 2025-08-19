@@ -36,9 +36,14 @@ public class Player : MonoBehaviour, IKitchenObjectParent
         gameInput.OnInteractAction += GameInput_OnInteractAction;
         gameInput.OnInteractAltAction += GameInput_OnInteractAltAction;
     }
+    
 
     private void GameInput_OnInteractAltAction(object sender, EventArgs e)
     {
+        if (!KitchenGameManager.Instance.IsGamePlaying())
+        {
+            return;
+        }
         if (_selectedCounter)
         {
             _selectedCounter.InteractAlt();
@@ -47,6 +52,10 @@ public class Player : MonoBehaviour, IKitchenObjectParent
 
     private void GameInput_OnInteractAction(object sender, EventArgs e)
     {
+        if (!KitchenGameManager.Instance.IsGamePlaying())
+        {
+            return;
+        }
         if (_selectedCounter != null)
         {
             _selectedCounter.Interact(this);
