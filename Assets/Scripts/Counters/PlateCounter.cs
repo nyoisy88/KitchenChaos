@@ -18,6 +18,10 @@ public class PlateCounter : BaseCounter
 
     private void Update()
     {
+        if (!KitchenGameManager.Instance.IsGamePlaying())
+        {
+            return;
+        }
         if (spawnPlateCount >= spawnPlateCountMax)
         {
             return;

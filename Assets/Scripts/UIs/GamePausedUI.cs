@@ -1,19 +1,29 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class GamePausedUI : MonoBehaviour
 {
+    public static GamePausedUI Instance { get; private set; }
+
     [SerializeField] private Button resumeBtn;
+    [SerializeField] private Button optionsBtn;
     [SerializeField] private Button mainMenuBtn;
 
     private void Awake()
     {
+        Instance = this;
         resumeBtn.onClick.AddListener(() =>
         {
             KitchenGameManager.Instance.TogglePause();
+        });
+        optionsBtn.onClick.AddListener(() =>
+        {
+            OptionsUI.Instance.Show(Show);
+            Hide();
         });
         mainMenuBtn.onClick.AddListener(() =>
         {
@@ -44,6 +54,7 @@ public class GamePausedUI : MonoBehaviour
     private void Show()
     {
         gameObject.SetActive(true);
+        resumeBtn.Select();
     }
 
     private void Hide()

@@ -1,16 +1,21 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Xml.Serialization;
 using UnityEngine;
 
 public class SoundManager : MonoBehaviour
 {
+    public const string PLAYER_PREFS_SOUND_VOLUME = "SoundVolume";
+    public static SoundManager Instance { get; private set; }
+    
     [SerializeField] private AudioClipRefsSO audioClipRefsSO;
 
-    public static SoundManager Instance { get; private set; }
+    private float soundVolume = 1f;
 
     private void Awake()
     {
         Instance = this;
+        soundVolume = PlayerPrefs.GetFloat(PLAYER_PREFS_SOUND_VOLUME, 1f);
     }
     private void Start()
     {
@@ -60,13 +65,35 @@ public class SoundManager : MonoBehaviour
     {
         PlaySound(audioClip[Random.Range(0, audioClip.Length)], position, volume);
     }
-    private void PlaySound(AudioClip audioClip, Vector3 position, float volume = 1f)
+    private void PlaySound(AudioClip audioClip, Vector3 position, float volumeMultiplier = 1f)
     {
-        AudioSource.PlayClipAtPoint(audioClip, position, volume);
+        AudioSource.PlayClipAtPoint(audioClip, position, volumeMultiplier * soundVolume);
     }
 
     public void PlayFootstepSound(Vector3 position, float volume = 1f)
     {
         PlaySound(audioClipRefsSO.footStep, position, volume);
+    }
+
+    public void PlayCountdownSound()
+    {
+        PlaySound(audioClipRefsSO.warning, Vector3.zero);
+    }
+
+    public void SetSoundVolume(float value)
+    {
+        soundVolume = value;
+        PlayerPrefs.SetFloat(PLAYER_PREFS_SOUND_VOLUME, soundVolume);
+        PlayerPrefs.Save();
+    }
+
+    public float GetSoundVolume()
+    {
+        return soundVolume;
+    }
+
+    public void PlayWarningSound(Vector3 position)
+    {
+        PlaySound(audioClipRefsSO.warning, position);
     }
 }

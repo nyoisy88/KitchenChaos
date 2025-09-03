@@ -81,6 +81,7 @@ public class StoveCounter : BaseCounter, IHasProgress
                 }
                 break;
             case State.Burnt:
+                ResetProgress();
                 break;
         }
 
@@ -215,5 +216,10 @@ public class StoveCounter : BaseCounter, IHasProgress
             }
         }
         return null;
+    }
+
+    public bool IsBurning()
+    {
+        return state == State.Burning;
     }
 }
