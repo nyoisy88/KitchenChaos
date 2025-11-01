@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 
-public class DeliveryManager : MonoBehaviour
+public class DeliveryManager : NetworkBehaviour
 {
     public event EventHandler OnRecipeSpawned;
     public event EventHandler OnRecipeCompleted;
@@ -13,7 +14,7 @@ public class DeliveryManager : MonoBehaviour
     [SerializeField] private RecipeListSO recipeListSO;
     private List<RecipeSO> waitingRecipeSOList = new();
 
-    float spawnRecipeTimer;
+    float spawnRecipeTimer = 2f;
     float spawnRecipeTimerMax = 4f;
     int waitingRecipeCountMax = 4;
     int recipesDelivered;
@@ -24,24 +25,34 @@ public class DeliveryManager : MonoBehaviour
     }
     private void Update()
     {
-        if (!KitchenGameManager.Instance.IsGamePlaying())
+        if (!IsServer)
         {
             return;
         }
-        if (waitingRecipeSOList.Count >= waitingRecipeCountMax)
+        if (!KitchenGameManager.Instance.IsGamePlaying() || waitingRecipeSOList.Count >= waitingRecipeCountMax)
         {
             return;
         }
+
         spawnRecipeTimer -= Time.deltaTime;
         if (spawnRecipeTimer <= 0f)
         {
             spawnRecipeTimer = spawnRecipeTimerMax;
 
-            RecipeSO spawnRecipeSO = recipeListSO.recipeSOList[UnityEngine.Random.Range(0, recipeListSO.recipeSOList.Count)];
-            waitingRecipeSOList.Add(spawnRecipeSO);
+            int recipeSOIndex = UnityEngine.Random.Range(0, recipeListSO.recipeSOList.Count);
 
-            OnRecipeSpawned?.Invoke(this, EventArgs.Empty);
+            SpawnRecipeClientRpc(recipeSOIndex);
+
         }
+    }
+
+    [ClientRpc]
+    private void SpawnRecipeClientRpc(int recipeSOIndex)
+    {
+        RecipeSO spawnRecipeSO = recipeListSO.recipeSOList[recipeSOIndex];
+        waitingRecipeSOList.Add(spawnRecipeSO);
+
+        OnRecipeSpawned?.Invoke(this, EventArgs.Empty);
     }
 
     public void DeliverRecipe(PlateKitchenObject plateKitchenObject)
@@ -70,28 +81,54 @@ public class DeliveryManager : MonoBehaviour
                         break;
                     }
                 }
-                if (!ingredientFound) {
+                if (!ingredientFound)
+                {
                     everyIngredientMatched = false;
                     break;
-                };
+                }
+                ;
             }
 
             if (everyIngredientMatched)
             {
-                Debug.Log("Delivery Success");
-                waitingRecipeSOList.RemoveAt(i);
-                recipesDelivered++;
-
-                OnRecipeCompleted?.Invoke(this, EventArgs.Empty);
-                OnRecipeSuccess?.Invoke(this, EventArgs.Empty);
+                //Debug.Log("Delivery Success");
+                RecipeDeliverSuccessServerRpc(i);
                 return;
             }
         }
 
         // Recipe not matched at all
         Debug.Log("Delivery Fail");
-        OnRecipeFailure?.Invoke(this, EventArgs.Empty);
+        RecipeDeliverFailureServerRpc();
 
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void RecipeDeliverSuccessServerRpc(int recipeIndex)
+    {
+
+        RecipeDeliverSuccessClientRpc(recipeIndex);
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void RecipeDeliverFailureServerRpc()
+    {
+        RecipeDeliverFailureClientRpc();
+    }
+
+    [ClientRpc]
+    private void RecipeDeliverSuccessClientRpc(int recipeIndex)
+    {
+        waitingRecipeSOList.RemoveAt(recipeIndex);
+        recipesDelivered++;
+        OnRecipeCompleted?.Invoke(this, EventArgs.Empty);
+        OnRecipeSuccess?.Invoke(this, EventArgs.Empty);
+    }
+
+    [ClientRpc]
+    private void RecipeDeliverFailureClientRpc()
+    {
+        OnRecipeFailure?.Invoke(this, EventArgs.Empty);
     }
 
     public List<RecipeSO> GetWaitingRecipeSOList()

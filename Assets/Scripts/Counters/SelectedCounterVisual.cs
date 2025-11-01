@@ -1,8 +1,5 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 public class SelectedCounterVisual : MonoBehaviour
 {
@@ -11,7 +8,23 @@ public class SelectedCounterVisual : MonoBehaviour
 
     private void Start()
     {
-        Player.Instance.OnSelectedCounterChanged += Player_OnSelectedCounterChanged;
+        if (Player.LocalInstance != null)
+        {
+            Player.LocalInstance.OnSelectedCounterChanged += Player_OnSelectedCounterChanged;
+        }
+        else
+        {
+            Player.OnAnyPlayerSpawned += Player_OnAnyPlayerSpawned;
+        }
+    }
+
+    private void Player_OnAnyPlayerSpawned(object sender, EventArgs e)
+    {
+        if (Player.LocalInstance != null)
+        {
+            Player.LocalInstance.OnSelectedCounterChanged -= Player_OnSelectedCounterChanged;
+            Player.LocalInstance.OnSelectedCounterChanged += Player_OnSelectedCounterChanged;
+        }
     }
 
     private void Player_OnSelectedCounterChanged(object sender, OnSelectedCounterChangedEventArgs e)

@@ -1,42 +1,53 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 
-public class Player : MonoBehaviour, IKitchenObjectParent
+public class Player : NetworkBehaviour, IKitchenObjectParent
 {
+    public static Player LocalInstance { get; private set; }
+
+    public static event EventHandler OnAnyPlayerSpawned;
+    public static event EventHandler OnAnyPlayerGrabbedObject;
+
+    public static void ResetStaticData()
+    {
+        OnAnyPlayerSpawned = null;
+        OnAnyPlayerGrabbedObject = null;
+    }
+
     public event EventHandler OnPlayerGrabbedObject;
-    public static Player Instance { get; private set; }
-    
     public event EventHandler<OnSelectedCounterChangedEventArgs> OnSelectedCounterChanged;
-    
+
     [SerializeField] private float moveSpeed = 7f;
-    [SerializeField] private GameInput gameInput;
     [SerializeField] private LayerMask counterLayerMask;
     [SerializeField] private Transform kitchenObjectHoldPoint;
 
+    private GameInput gameInput;
     private bool _isWalking;
     private Vector3 _lastInteractDir;
     private BaseCounter _selectedCounter;
     private KitchenObject _kitchenObject;
 
+    public override void OnNetworkSpawn()
+    {
+        if (IsOwner)
+        {
+            LocalInstance = this;
+            OnAnyPlayerSpawned?.Invoke(this, EventArgs.Empty);
+        }
+    }
+
     #region unity methods
 
-    private void Awake()
-    {
-        if (Instance)
-        {
-            Debug.LogError("More than 1 player detected!!");
-        }
-        Instance = this;
-    }
 
     private void Start()
     {
+        gameInput = GameInput.Instance;
         gameInput.OnInteractAction += GameInput_OnInteractAction;
         gameInput.OnInteractAltAction += GameInput_OnInteractAltAction;
+
     }
-    
+
 
     private void GameInput_OnInteractAltAction(object sender, EventArgs e)
     {
@@ -64,11 +75,68 @@ public class Player : MonoBehaviour, IKitchenObjectParent
 
     private void Update()
     {
+        if (!IsOwner)
+        {
+            return;
+        }
+        //HandleMovementServerAuth();
         HandleMovement();
         HandleInteraction();
     }
 
     #endregion
+
+    private void HandleMovementServerAuth()
+    {
+        Vector2 inputVector = gameInput.GetMovementVectorNormalized();
+        HandleMovementServerRpc(inputVector);
+
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void HandleMovementServerRpc(Vector2 inputVector)
+    {
+        Vector3 moveDir = new Vector3(inputVector.x, 0f, inputVector.y);
+
+        float playerHeight = 2f;
+        float playerRadius = 0.6f;
+        float moveDistance = Time.deltaTime * moveSpeed;
+        bool canMove = !Physics.CapsuleCast(transform.position, transform.position + (Vector3.up * playerHeight),
+            playerRadius, moveDir, moveDistance);
+
+        if (!canMove)
+        {
+            // Check wall direction to move alongside
+            Vector3 moveDirX = new Vector3(moveDir.x, 0, 0);
+            canMove = moveDir.x != 0 && !Physics.CapsuleCast(transform.position, transform.position + (Vector3.up * playerHeight),
+                playerRadius, moveDirX, moveDistance);
+            if (canMove)
+            {
+                moveDir = moveDirX;
+            }
+            else
+            {
+                Vector3 moveDirZ = new Vector3(0, 0, moveDir.z);
+                canMove = moveDir.z != 0 && !Physics.CapsuleCast(transform.position, transform.position + (Vector3.up * playerHeight),
+                    playerRadius, moveDirZ, moveDistance);
+                if (canMove)
+                {
+                    moveDir = moveDirZ;
+                }
+            }
+        }
+
+        if (canMove)
+        {
+            transform.position += moveDir * moveDistance;
+        }
+
+        _isWalking = moveDir != Vector3.zero;
+
+        const float rotationSpeed = 10f;
+        transform.forward = Vector3.Slerp(transform.forward, moveDir, rotationSpeed * Time.deltaTime);
+    }
+
     private void HandleInteraction()
     {
         Vector2 inputVector = gameInput.GetMovementVectorNormalized();
@@ -128,7 +196,7 @@ public class Player : MonoBehaviour, IKitchenObjectParent
                 Vector3 moveDirZ = new Vector3(0, 0, moveDir.z);
                 canMove = moveDir.z != 0 && !Physics.CapsuleCast(transform.position, transform.position + (Vector3.up * playerHeight),
                     playerRadius, moveDirZ, moveDistance);
-                if ( canMove )
+                if (canMove)
                 {
                     moveDir = moveDirZ;
                 }
@@ -167,6 +235,7 @@ public class Player : MonoBehaviour, IKitchenObjectParent
         if (_kitchenObject != null)
         {
             OnPlayerGrabbedObject?.Invoke(this, EventArgs.Empty);
+            OnAnyPlayerGrabbedObject?.Invoke(this, EventArgs.Empty);
         }
     }
 
@@ -188,6 +257,11 @@ public class Player : MonoBehaviour, IKitchenObjectParent
     public void ClearKitchenObject()
     {
         _kitchenObject = null;
+    }
+
+    public NetworkObject GetNetworkObject()
+    {
+        return NetworkObject;
     }
 }
 

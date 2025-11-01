@@ -1,8 +1,5 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.EventSystems;
 
 public class KitchenGameManager : MonoBehaviour
 {
@@ -25,7 +22,7 @@ public class KitchenGameManager : MonoBehaviour
 
     private float startCountdownTimer = 3f;
     private float playingTimer;
-    private float playingTimerMax = 30f;
+    private float playingTimerMax = 60f;
     private bool isGamePaused = false;
 
 
@@ -40,10 +37,10 @@ public class KitchenGameManager : MonoBehaviour
     private void Start()
     {
         GameInput.Instance.OnPauseAction += GameInput_OnPauseAction;
-        GameInput.Instance.OnInteractAction += GameInput_OnInteractAction;
+        //GameInput.Instance.OnInteractAction += GameInput_OnInteractAction;
     }
 
-    private void GameInput_OnInteractAction(object sender, EventArgs e)
+    public void GameInput_OnInteractAction(object sender, EventArgs e)
     {
         if (state == State.WaitingToStart)
         {
@@ -57,7 +54,8 @@ public class KitchenGameManager : MonoBehaviour
         switch (state)
         {
             case State.WaitingToStart:
-                
+                //state = State.StartCountdown;
+                //OnStateChanged?.Invoke(this, EventArgs.Empty);
                 break;
             case State.StartCountdown:
                 startCountdownTimer -= Time.deltaTime;

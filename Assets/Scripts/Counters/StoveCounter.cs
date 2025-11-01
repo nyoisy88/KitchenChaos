@@ -54,10 +54,10 @@ public class StoveCounter : BaseCounter, IHasProgress
                 if (fryingTimer >= fryingRecipeSO.fryingTimerMax)
                 {
                     GetKitchenObject().DestroySelf();
-                    KitchenObject friedKitchenObject = KitchenObject.SpawnKitchenObject(fryingRecipeSO.output, this);
+                    KitchenObject.SpawnKitchenObject(fryingRecipeSO.output, this);
                     state = State.Burning;
                     burningTimer = 0;
-                    burningRecipeSO = GetBurningRecipeSOFromInput(friedKitchenObject.GetKitchenObjectSO());
+                    burningRecipeSO = GetBurningRecipeSOFromInput(fryingRecipeSO.output);
 
                     OnStateChanged?.Invoke(this, new OnStateChangedEventArgs
                     {
@@ -72,7 +72,7 @@ public class StoveCounter : BaseCounter, IHasProgress
                 if (burningTimer >= burningRecipeSO.burningTimerMax)
                 {
                     GetKitchenObject().DestroySelf();
-                    KitchenObject burntKitchenObject = KitchenObject.SpawnKitchenObject(burningRecipeSO.output, this);
+                    KitchenObject.SpawnKitchenObject(burningRecipeSO.output, this);
                     state = State.Burnt;
                     OnStateChanged?.Invoke(this, new OnStateChangedEventArgs
                     {
