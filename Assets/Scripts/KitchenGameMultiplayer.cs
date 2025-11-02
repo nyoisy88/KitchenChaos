@@ -32,11 +32,16 @@ public class KitchenGameMultiplayer : NetworkBehaviour
             kitchenObjectParentNetworkObject.GetComponent<IKitchenObjectParent>() : null;
 
         KitchenObject spawnKitchenObject = kitchenObjectTransform.GetComponent<KitchenObject>();
-        spawnKitchenObject.SetKitchenObjectParent(kitchenObjectParent);
+        spawnKitchenObject.SetKitchenObjectParentRpc(kitchenObjectParent);
     }
 
-    private int GetKitchenObjectSOIndex(KitchenObjectSO kitchenObjectSO)
+    public int GetKitchenObjectSOIndex(KitchenObjectSO kitchenObjectSO)
     {
         return kitchenObjectListSO.kitchenObjectSOList.IndexOf(kitchenObjectSO);
+    }
+
+    public KitchenObjectSO GetKitchenObjectSOFromIndex(int kitchenObjectSOIndex)
+    {
+        return kitchenObjectListSO.kitchenObjectSOList[kitchenObjectSOIndex];
     }
 }

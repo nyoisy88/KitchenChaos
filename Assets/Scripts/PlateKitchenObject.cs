@@ -1,6 +1,6 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 
 public class PlateKitchenObject : KitchenObject
@@ -26,28 +26,43 @@ public class PlateKitchenObject : KitchenObject
         kitchenObjectSOList = new List<KitchenObjectSO>();
     }
 
-    public bool TryAddIngredient(KitchenObjectSO ingredient)
+    public bool TryAddIngredientRpc(KitchenObjectSO kitchenObjectSO)
     {
-        if (!validKitchenObjectSOList.Contains(ingredient))
+        if (!validKitchenObjectSOList.Contains(kitchenObjectSO))
         {
             return false;
         }
-        if (!kitchenObjectSOList.Contains(ingredient))
+        if (!kitchenObjectSOList.Contains(kitchenObjectSO))
         {
-            kitchenObjectSOList.Add(ingredient);
-
-            OnIngredientAdded?.Invoke(this, new OnIngredientAddedEventArgs
-            {
-                KitchenObjectSO = ingredient,
-            });
-
-            OnIngredientChanged?.Invoke(this, new OnIngredientChangedEventArgs
-            {
-                KitchenObjectSOList = kitchenObjectSOList,
-            });
+            AddIngredientServerRpc(
+                KitchenGameMultiplayer.Instance.GetKitchenObjectSOIndex(kitchenObjectSO)
+                );
             return true;
         }
         return false;
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void AddIngredientServerRpc(int kitchenObjectSOIndex)
+    {
+        AddIngredientClientRpc(kitchenObjectSOIndex);
+    }
+
+    [ClientRpc]
+    private void AddIngredientClientRpc(int kitchenObjectSOIndex)
+    {
+        KitchenObjectSO kitchenObjectSO = KitchenGameMultiplayer.Instance.GetKitchenObjectSOFromIndex(kitchenObjectSOIndex);
+        kitchenObjectSOList.Add(kitchenObjectSO);
+
+        OnIngredientAdded?.Invoke(this, new OnIngredientAddedEventArgs
+        {
+            KitchenObjectSO = kitchenObjectSO,
+        });
+
+        OnIngredientChanged?.Invoke(this, new OnIngredientChangedEventArgs
+        {
+            KitchenObjectSOList = kitchenObjectSOList,
+        });
     }
 
     public List<KitchenObjectSO> GetKitchenObjectSOList()

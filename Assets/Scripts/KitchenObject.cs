@@ -24,7 +24,7 @@ public class KitchenObject : NetworkBehaviour
         return kitchenObjectSO;
     }
 
-    public void SetKitchenObjectParent(IKitchenObjectParent kitchenObjectParent)
+    public void SetKitchenObjectParentRpc(IKitchenObjectParent kitchenObjectParent)
     {
         SetKitchenObjectParentServerRpc(kitchenObjectParent.GetNetworkObject());
     }
@@ -60,8 +60,20 @@ public class KitchenObject : NetworkBehaviour
 
     public void DestroySelf()
     {
-        _kitchenObjectParent.ClearKitchenObject();
+        DestroySelfServerRpc();
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void DestroySelfServerRpc()
+    {
+        ClearKitchenObjectOnParentClientRpc();
         Destroy(gameObject);
+    }
+
+    [ClientRpc]
+    private void ClearKitchenObjectOnParentClientRpc()
+    {
+        _kitchenObjectParent.ClearKitchenObject();
     }
 
     public bool TryGetPlate(out PlateKitchenObject plateKitchenObject)

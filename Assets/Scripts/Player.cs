@@ -134,7 +134,10 @@ public class Player : NetworkBehaviour, IKitchenObjectParent
         _isWalking = moveDir != Vector3.zero;
 
         const float rotationSpeed = 10f;
-        transform.forward = Vector3.Slerp(transform.forward, moveDir, rotationSpeed * Time.deltaTime);
+        if (_isWalking)
+        {
+            transform.forward = Vector3.Slerp(transform.forward, moveDir, rotationSpeed * Time.deltaTime);
+        }
     }
 
     private void HandleInteraction()
@@ -211,7 +214,10 @@ public class Player : NetworkBehaviour, IKitchenObjectParent
         _isWalking = moveDir != Vector3.zero;
 
         const float rotationSpeed = 10f;
-        transform.forward = Vector3.Slerp(transform.forward, moveDir, rotationSpeed * Time.deltaTime);
+        if (_isWalking)
+        {
+            transform.forward = Vector3.Slerp(transform.forward, moveDir, rotationSpeed * Time.deltaTime);
+        }
     }
 
     public bool IsWalking()
