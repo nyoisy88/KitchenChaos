@@ -1,6 +1,9 @@
+using JetBrains.Annotations;
 using System;
+using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class Player : NetworkBehaviour, IKitchenObjectParent
 {
@@ -17,10 +20,13 @@ public class Player : NetworkBehaviour, IKitchenObjectParent
 
     public event EventHandler OnPlayerGrabbedObject;
     public event EventHandler<OnSelectedCounterChangedEventArgs> OnSelectedCounterChanged;
+    //public event EventHandler OnPlayerTogglePause;
 
     [SerializeField] private float moveSpeed = 7f;
     [SerializeField] private LayerMask counterLayerMask;
+    [SerializeField] private LayerMask collisionLayerMask;
     [SerializeField] private Transform kitchenObjectHoldPoint;
+    [SerializeField] private List<Vector3> playerSpawnLocationsList;
 
     private GameInput gameInput;
     private bool _isWalking;
@@ -34,6 +40,31 @@ public class Player : NetworkBehaviour, IKitchenObjectParent
         {
             LocalInstance = this;
             OnAnyPlayerSpawned?.Invoke(this, EventArgs.Empty);
+        }
+        int localPlayerId = (int)NetworkObject.OwnerClientId;
+        transform.position = playerSpawnLocationsList[localPlayerId];
+
+        if (IsServer)
+        {
+            //NetworkManager.Singleton.OnClientDisconnectCallback += NetworkManager_OnClientDisconnectCallback;
+            NetworkManager.Singleton.OnConnectionEvent += NetworkManager_OnConnectionEvent;
+        }
+    }
+
+
+    private void NetworkManager_OnConnectionEvent(NetworkManager manager, ConnectionEventData data)
+    {
+        if (data.EventType == ConnectionEvent.ClientDisconnected && data.ClientId == OwnerClientId && HasKitchenObject())
+        {
+            GetKitchenObject().DestroySelf();
+        }
+    }
+
+    private void NetworkManager_OnClientDisconnectCallback(ulong clientId)
+    {
+        if (clientId == OwnerClientId && HasKitchenObject())
+        {
+            GetKitchenObject().DestroySelf();
         }
     }
 
@@ -96,48 +127,7 @@ public class Player : NetworkBehaviour, IKitchenObjectParent
     [ServerRpc(RequireOwnership = false)]
     private void HandleMovementServerRpc(Vector2 inputVector)
     {
-        Vector3 moveDir = new Vector3(inputVector.x, 0f, inputVector.y);
-
-        float playerHeight = 2f;
-        float playerRadius = 0.6f;
-        float moveDistance = Time.deltaTime * moveSpeed;
-        bool canMove = !Physics.CapsuleCast(transform.position, transform.position + (Vector3.up * playerHeight),
-            playerRadius, moveDir, moveDistance);
-
-        if (!canMove)
-        {
-            // Check wall direction to move alongside
-            Vector3 moveDirX = new Vector3(moveDir.x, 0, 0);
-            canMove = moveDir.x != 0 && !Physics.CapsuleCast(transform.position, transform.position + (Vector3.up * playerHeight),
-                playerRadius, moveDirX, moveDistance);
-            if (canMove)
-            {
-                moveDir = moveDirX;
-            }
-            else
-            {
-                Vector3 moveDirZ = new Vector3(0, 0, moveDir.z);
-                canMove = moveDir.z != 0 && !Physics.CapsuleCast(transform.position, transform.position + (Vector3.up * playerHeight),
-                    playerRadius, moveDirZ, moveDistance);
-                if (canMove)
-                {
-                    moveDir = moveDirZ;
-                }
-            }
-        }
-
-        if (canMove)
-        {
-            transform.position += moveDir * moveDistance;
-        }
-
-        _isWalking = moveDir != Vector3.zero;
-
-        const float rotationSpeed = 10f;
-        if (_isWalking)
-        {
-            transform.forward = Vector3.Slerp(transform.forward, moveDir, rotationSpeed * Time.deltaTime);
-        }
+        HandleMovement();
     }
 
     private void HandleInteraction()
@@ -178,18 +168,16 @@ public class Player : NetworkBehaviour, IKitchenObjectParent
 
         Vector3 moveDir = new Vector3(inputVector.x, 0f, inputVector.y);
 
-        float playerHeight = 2f;
+        //float playerHeight = 2f;
         float playerRadius = 0.6f;
         float moveDistance = Time.deltaTime * moveSpeed;
-        bool canMove = !Physics.CapsuleCast(transform.position, transform.position + (Vector3.up * playerHeight),
-            playerRadius, moveDir, moveDistance);
+        bool canMove = !Physics.BoxCast(transform.position, Vector3.one * playerRadius, moveDir, Quaternion.identity, moveDistance, collisionLayerMask);
 
         if (!canMove)
         {
             // Check wall direction to move alongside
             Vector3 moveDirX = new Vector3(moveDir.x, 0, 0);
-            canMove = moveDir.x != 0 && !Physics.CapsuleCast(transform.position, transform.position + (Vector3.up * playerHeight),
-                playerRadius, moveDirX, moveDistance);
+            canMove = moveDir.x != 0 && !Physics.BoxCast(transform.position, Vector3.one * playerRadius, moveDirX, Quaternion.identity, moveDistance, collisionLayerMask);
             if (canMove)
             {
                 moveDir = moveDirX;
@@ -197,8 +185,7 @@ public class Player : NetworkBehaviour, IKitchenObjectParent
             else
             {
                 Vector3 moveDirZ = new Vector3(0, 0, moveDir.z);
-                canMove = moveDir.z != 0 && !Physics.CapsuleCast(transform.position, transform.position + (Vector3.up * playerHeight),
-                    playerRadius, moveDirZ, moveDistance);
+                canMove = moveDir.z != 0 && !Physics.BoxCast(transform.position, Vector3.one * playerRadius, moveDirZ, Quaternion.identity, moveDistance, collisionLayerMask);
                 if (canMove)
                 {
                     moveDir = moveDirZ;

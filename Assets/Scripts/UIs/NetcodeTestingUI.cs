@@ -7,34 +7,31 @@ public class NetcodeTestingUI : MonoBehaviour
 {
     [SerializeField] private Button hostStartBtn;
     [SerializeField] private Button clientStartBtn;
-    [SerializeField] private Button serverStartBtn;
 
     void Start()
     {
         hostStartBtn.onClick.AddListener(() =>
         {
-            Unity.Netcode.NetworkManager.Singleton.StartHost();
+            Debug.Log("Host");
+            KitchenGameMultiplayer.Instance.StartHost();
             Hide();
         });
         clientStartBtn.onClick.AddListener(() =>
         {
-            Unity.Netcode.NetworkManager.Singleton.StartClient();
+            Debug.Log("Client");
+            KitchenGameMultiplayer.Instance.StartClient();
             Hide();
-        });
-        serverStartBtn.onClick.AddListener(() =>
-        {
-            Unity.Netcode.NetworkManager.Singleton.StartServer();
         });
     }
 
     private void Show()
     {
         gameObject.SetActive(true);
+        hostStartBtn.Select();
     }
 
     private void Hide()
     {
         gameObject.SetActive(false);
-        KitchenGameManager.Instance.GameInput_OnInteractAction(null, System.EventArgs.Empty);
     }
 }
