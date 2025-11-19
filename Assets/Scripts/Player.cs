@@ -18,15 +18,16 @@ public class Player : NetworkBehaviour, IKitchenObjectParent
         OnAnyPlayerGrabbedObject = null;
     }
 
+    public event EventHandler OnPlayerTogglePause;
     public event EventHandler OnPlayerGrabbedObject;
     public event EventHandler<OnSelectedCounterChangedEventArgs> OnSelectedCounterChanged;
-    //public event EventHandler OnPlayerTogglePause;
 
     [SerializeField] private float moveSpeed = 7f;
     [SerializeField] private LayerMask counterLayerMask;
     [SerializeField] private LayerMask collisionLayerMask;
     [SerializeField] private Transform kitchenObjectHoldPoint;
     [SerializeField] private List<Vector3> playerSpawnLocationsList;
+    [SerializeField] private PlayerVisual playerVisual;
 
     private GameInput gameInput;
     private bool _isWalking;
@@ -41,12 +42,12 @@ public class Player : NetworkBehaviour, IKitchenObjectParent
             LocalInstance = this;
             OnAnyPlayerSpawned?.Invoke(this, EventArgs.Empty);
         }
-        int localPlayerId = (int)NetworkObject.OwnerClientId;
-        transform.position = playerSpawnLocationsList[localPlayerId];
+
+        int playerIndex = KitchenGameMultiplayer.Instance.GetPlayerIndexFromClientId(OwnerClientId);
+        transform.position = playerSpawnLocationsList[playerIndex];
 
         if (IsServer)
         {
-            //NetworkManager.Singleton.OnClientDisconnectCallback += NetworkManager_OnClientDisconnectCallback;
             NetworkManager.Singleton.OnConnectionEvent += NetworkManager_OnConnectionEvent;
         }
     }
@@ -76,9 +77,20 @@ public class Player : NetworkBehaviour, IKitchenObjectParent
         gameInput = GameInput.Instance;
         gameInput.OnInteractAction += GameInput_OnInteractAction;
         gameInput.OnInteractAltAction += GameInput_OnInteractAltAction;
-
+        KitchenGameManager.Instance.OnAnyPlayerTogglePause += KitchenGameManager_OnAnyPlayerTogglePause;
+        
+        PlayerData playerData = KitchenGameMultiplayer.Instance.GetPlayerDataFromClientId(NetworkObject.OwnerClientId);
+        playerVisual.SetPlayerColor(KitchenGameMultiplayer.Instance.GetPlayerColor(playerData.colorIndex));
     }
 
+    private void KitchenGameManager_OnAnyPlayerTogglePause(object sender, OnAnyPlayerTogglePauseEventArgs e)
+    {
+        if (e.clientId == NetworkObject.OwnerClientId)
+        {
+            Debug.Log("Player object received toggle pause event: " + NetworkObject.OwnerClientId);
+            OnPlayerTogglePause?.Invoke(this, EventArgs.Empty);
+        }
+    }
 
     private void GameInput_OnInteractAltAction(object sender, EventArgs e)
     {
@@ -256,6 +268,7 @@ public class Player : NetworkBehaviour, IKitchenObjectParent
     {
         return NetworkObject;
     }
+
 }
 
 public class OnSelectedCounterChangedEventArgs : EventArgs

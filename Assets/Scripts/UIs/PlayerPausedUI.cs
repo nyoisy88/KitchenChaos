@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 
 public class PlayerPausedUI : MonoBehaviour
@@ -8,26 +9,19 @@ public class PlayerPausedUI : MonoBehaviour
     [SerializeField] private Player player;
     private void Start()
     {
-        KitchenGameManager.Instance.OnAnyPlayerTogglePause += KitchenGameManager_OnAnyPlayerTogglePause;
+        player.OnPlayerTogglePause += Player_OnPlayerTogglePause;
         Hide();
     }
 
-    private void KitchenGameManager_OnAnyPlayerTogglePause(object sender, OnAnyPlayerTogglePauseEventArgs e)
+    private void Player_OnPlayerTogglePause(object sender, EventArgs e)
     {
-        if (e.AreAllPlayersPaused)
+        if (KitchenGameManager.Instance.isPlayerPaused(player.NetworkObject.OwnerClientId))
         {
             Show();
         }
-        else if (e.Player == player)
+        else
         {
-            if (e.IsPlayerGamePaused)
-            {
-                Show();
-            }
-            else
-            {
-                Hide();
-            }
+            Hide();
         }
     }
 

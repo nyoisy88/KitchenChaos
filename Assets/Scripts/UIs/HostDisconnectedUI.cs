@@ -1,4 +1,3 @@
-using System;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UI;
@@ -14,7 +13,7 @@ public class HostDisconnectedUI : MonoBehaviour
         replayBtn.onClick.AddListener(() =>
         {
             NetworkManager.Singleton.Shutdown();
-            Loader.LoadScene(Loader.Scene.GameScene);
+            Loader.LoadScene(Loader.Scene.MainMenuScene);
         });
 
         Hide();
@@ -37,5 +36,10 @@ public class HostDisconnectedUI : MonoBehaviour
     private void Hide()
     {
         gameObject.SetActive(false);
+    }
+
+    private void OnDestroy()
+    {
+        NetworkManager.Singleton.OnClientDisconnectCallback -= NetworkManager_OnClientDisconnectCallback;
     }
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Unity.Netcode;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -164,22 +165,24 @@ public class KitchenGameManager : NetworkBehaviour
     {
         playerPauseDictionary[serverRpcParams.Receive.SenderClientId] = isSenderPaused;
 
+        
+        SetPlayerPauseClientRpc(serverRpcParams.Receive.SenderClientId, isSenderPaused, playerNetworkObjectRef);
+    }
+
+    [ClientRpc]
+    private void SetPlayerPauseClientRpc(ulong clientId, bool isSenderPaused, NetworkObjectReference playerNetworkObjectRef)
+    {
+        playerPauseDictionary[clientId] = isSenderPaused;
         bool allPlayersPaused = true;
-        foreach (ulong clientId in NetworkManager.Singleton.ConnectedClientsIds)
+        foreach (ulong i in NetworkManager.Singleton.ConnectedClientsIds)
         {
-            if (!playerPauseDictionary.ContainsKey(clientId) || !playerPauseDictionary[clientId])
+            if (!playerPauseDictionary.ContainsKey(i) || !playerPauseDictionary[i])
             {
                 // There is at least one player who is not paused
                 allPlayersPaused = false;
                 break;
             }
         }
-        SetPlayerPauseClientRpc(allPlayersPaused, isSenderPaused, playerNetworkObjectRef);
-    }
-
-    [ClientRpc]
-    private void SetPlayerPauseClientRpc(bool allPlayersPaused, bool isSenderPaused, NetworkObjectReference playerNetworkObjectRef)
-    {
         if (allPlayersPaused)
         {
             Time.timeScale = 0f;
@@ -188,14 +191,10 @@ public class KitchenGameManager : NetworkBehaviour
         {
             Time.timeScale = 1f;
         }
-        playerNetworkObjectRef.TryGet(out NetworkObject playerNetworkObject);
-        Player player = playerNetworkObject.GetComponent<Player>();
 
         OnAnyPlayerTogglePause?.Invoke(this, new OnAnyPlayerTogglePauseEventArgs
         {
-            AreAllPlayersPaused = allPlayersPaused,
-            IsPlayerGamePaused = isSenderPaused,
-            Player = player
+            clientId = clientId
         });
     }
 
@@ -236,11 +235,18 @@ public class KitchenGameManager : NetworkBehaviour
         return isLocalGamePaused;
     }
 
+    public bool isPlayerPaused(ulong clientId)
+    {
+        if (playerPauseDictionary.ContainsKey(clientId))
+        {
+            return playerPauseDictionary[clientId];
+        }
+        return false;
+    }
+
 }
 
 public class OnAnyPlayerTogglePauseEventArgs : EventArgs
 {
-    public bool AreAllPlayersPaused;
-    public bool IsPlayerGamePaused;
-    public Player Player;
+    public ulong clientId;
 }
