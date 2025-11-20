@@ -87,7 +87,7 @@ public class Player : NetworkBehaviour, IKitchenObjectParent
     {
         if (e.clientId == NetworkObject.OwnerClientId)
         {
-            Debug.Log("Player object received toggle pause event: " + NetworkObject.OwnerClientId);
+            //Debug.Log("Player object received toggle pause event: " + NetworkObject.OwnerClientId);
             OnPlayerTogglePause?.Invoke(this, EventArgs.Empty);
         }
     }

@@ -67,7 +67,7 @@ public class KitchenObject : NetworkBehaviour
     private void DestroySelfServerRpc()
     {
         ClearKitchenObjectOnParentClientRpc();
-        Destroy(gameObject);
+        this.NetworkObject.Despawn();
     }
 
     [ClientRpc]
