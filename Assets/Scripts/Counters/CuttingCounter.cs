@@ -94,6 +94,10 @@ public class CuttingCounter : BaseCounter, IHasProgress
     [ServerRpc(RequireOwnership = false)]
     private void CutObjectServerRpc()
     {
+        if (!HasKitchenObject() || !HasOutputFromInput(GetKitchenObject().GetKitchenObjectSO()))
+        {
+            return;
+        }
         CutObjectClientRpc();
     }
 
@@ -110,7 +114,7 @@ public class CuttingCounter : BaseCounter, IHasProgress
         {
             progressNormalized = (float)cutProgress / cuttingRecipeSO.cuttingNumberMax
         });
-        
+
     }
 
     [ServerRpc(RequireOwnership = false)]

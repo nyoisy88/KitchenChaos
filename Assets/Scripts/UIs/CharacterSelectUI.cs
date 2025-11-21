@@ -1,37 +1,37 @@
-using System.Collections;
-using System.Collections.Generic;
 using TMPro;
 using Unity.Netcode;
 using Unity.Services.Lobbies.Models;
 using UnityEngine;
 using UnityEngine.UI;
-
-public class CharacterSelectUI : MonoBehaviour
+namespace UIs
 {
-    [SerializeField] private Button mainMenuBtn;
-    [SerializeField] private Button readyBtn;
-    [SerializeField] private TextMeshProUGUI lobbyNameTxt;
-    [SerializeField] private TextMeshProUGUI lobbyCodeTxt;
-
-    private void Awake()
+    public class CharacterSelectUI : MonoBehaviour
     {
-        mainMenuBtn.onClick.AddListener(() =>
-        {
-            NetworkManager.Singleton.Shutdown();
-            KitchenGameLobby.Instance.LeaveLobby();
-            Loader.LoadScene(Loader.Scene.MainMenuScene);
-        });
+        [SerializeField] private Button mainMenuBtn;
+        [SerializeField] private Button readyBtn;
+        [SerializeField] private TextMeshProUGUI lobbyNameTxt;
+        [SerializeField] private TextMeshProUGUI lobbyCodeTxt;
 
-        readyBtn.onClick.AddListener(() =>
+        private void Awake()
         {
-            CharacterSelectReady.Instance.SetPlayerReady();
-        });
-    }
+            mainMenuBtn.onClick.AddListener(() =>
+            {
+                NetworkManager.Singleton.Shutdown();
+                KitchenGameLobby.Instance.LeaveLobby();
+                Loader.LoadScene(Loader.Scene.MainMenuScene);
+            });
 
-    private void Start()
-    {
-        Lobby lobby = KitchenGameLobby.Instance.GetLobby();
-        lobbyNameTxt.text = $"Lobby Name: {lobby.Name}";
-        lobbyCodeTxt.text = $"Lobby Code: {lobby.LobbyCode}";
+            readyBtn.onClick.AddListener(() =>
+            {
+                CharacterSelectReady.Instance.SetPlayerReady();
+            });
+        }
+
+        private void Start()
+        {
+            Lobby lobby = KitchenGameLobby.Instance.GetLobby();
+            lobbyNameTxt.text = $"Lobby Name: {lobby.Name}";
+            lobbyCodeTxt.text = $"Lobby Code: {lobby.LobbyCode}";
+        }
     }
 }

@@ -66,6 +66,10 @@ public class KitchenObject : NetworkBehaviour
     [ServerRpc(RequireOwnership = false)]
     private void DestroySelfServerRpc()
     {
+        if (this == null)
+        {
+            return;
+        }
         ClearKitchenObjectOnParentClientRpc();
         this.NetworkObject.Despawn();
     }

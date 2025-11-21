@@ -172,13 +172,21 @@ public class KitchenGameMultiplayer : NetworkBehaviour
     private void SpawnKitchenObjectServerRpc(int kitchenObjectListSOIndex, NetworkObjectReference kitchenObjectParentNetworkObjectRef)
     {
         KitchenObjectSO kitchenObjectSO = kitchenObjectListSO.kitchenObjectSOList[kitchenObjectListSOIndex];
+
+        IKitchenObjectParent kitchenObjectParent = kitchenObjectParentNetworkObjectRef.TryGet(out NetworkObject kitchenObjectParentNetworkObject) ?
+    kitchenObjectParentNetworkObject.GetComponent<IKitchenObjectParent>() : null;
+
+        if (kitchenObjectParent.HasKitchenObject())
+        {
+            // Parent already has a kitchen object
+            return;
+        }
+
         Transform kitchenObjectTransform = Instantiate(kitchenObjectSO.prefab);
 
         NetworkObject kitchenObjectNetworkObject = kitchenObjectTransform.GetComponent<NetworkObject>();
         kitchenObjectNetworkObject.Spawn(true);
 
-        IKitchenObjectParent kitchenObjectParent = kitchenObjectParentNetworkObjectRef.TryGet(out NetworkObject kitchenObjectParentNetworkObject) ?
-            kitchenObjectParentNetworkObject.GetComponent<IKitchenObjectParent>() : null;
 
         KitchenObject spawnKitchenObject = kitchenObjectTransform.GetComponent<KitchenObject>();
         spawnKitchenObject.SetKitchenObjectParentRpc(kitchenObjectParent);

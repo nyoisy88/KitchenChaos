@@ -8,7 +8,7 @@ public class PlayerAnimator : NetworkBehaviour
 {
     [SerializeField] private Player player;
 
-    private static readonly int Walking = Animator.StringToHash("IsWalking");
+    private static string Walking = "IsWalking";
     private Animator _playerAnimator;
 
     private void Awake()
