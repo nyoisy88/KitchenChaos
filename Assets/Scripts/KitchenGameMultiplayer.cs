@@ -21,6 +21,7 @@ public class KitchenGameMultiplayer : NetworkBehaviour
         }
     }
 
+    public static bool IsMultiplayerMode;
     public event EventHandler OnTryingToJoinGame;
     public event EventHandler OnFailedToJoinGame;
     public event EventHandler OnPlayerDataNetworkListChanged;
@@ -28,7 +29,6 @@ public class KitchenGameMultiplayer : NetworkBehaviour
 
     [SerializeField] private KitchenObjectListSO kitchenObjectListSO;
     [SerializeField] private List<Color> playerColorList;
-
     private NetworkList<PlayerData> playerDataNetworkList;
     private string playerName;
 
@@ -41,6 +41,15 @@ public class KitchenGameMultiplayer : NetworkBehaviour
         playerDataNetworkList = new NetworkList<PlayerData>();
         playerDataNetworkList.OnListChanged += KitchenGameMultiplayer_OnPlayerDataNetworkListChanged;
 
+    }
+
+    private void Start()
+    {
+        if (!IsMultiplayerMode)
+        {
+            StartHost();
+            Loader.LoadNetwork(Loader.Scene.GameScene);
+        }
     }
 
     private void KitchenGameMultiplayer_OnPlayerDataNetworkListChanged(NetworkListEvent<PlayerData> changeEvent)

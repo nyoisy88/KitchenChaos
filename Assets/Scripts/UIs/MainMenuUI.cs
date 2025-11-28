@@ -6,13 +6,21 @@ using UnityEngine.UI;
 
 public class MainMenuUI : MonoBehaviour
 {
-    [SerializeField] private Button startBtn;
+    [SerializeField] private Button startMultiplayerBtn;
+    [SerializeField] private Button startSingleplayerBtn;
     [SerializeField] private Button quitBtn;
 
     private void Start()
     {
-        startBtn.onClick.AddListener(() =>
+        startMultiplayerBtn.onClick.AddListener(() =>
         {
+            KitchenGameMultiplayer.IsMultiplayerMode = true;
+            Loader.LoadScene(Loader.Scene.LobbyScene);
+        });
+
+        startSingleplayerBtn.onClick.AddListener(() =>
+        {
+            KitchenGameMultiplayer.IsMultiplayerMode = false;
             Loader.LoadScene(Loader.Scene.LobbyScene);
         });
 

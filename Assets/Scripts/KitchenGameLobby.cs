@@ -27,6 +27,7 @@ public class KitchenGameLobby : MonoBehaviour
         public List<Lobby> LobbyList;
     }
 
+
     private const string RELAY_JOIN_CODE = "RelayJoinCode";
     private Lobby joinedLobby;
     private float heartbeatTimer;
@@ -38,6 +39,7 @@ public class KitchenGameLobby : MonoBehaviour
         DontDestroyOnLoad(gameObject);
         InitializeUnityAuthentication();
     }
+
 
     private void Update()
     {
@@ -91,6 +93,7 @@ public class KitchenGameLobby : MonoBehaviour
             options.SetProfile(UnityEngine.Random.Range(0, 1000).ToString());
             await UnityServices.InitializeAsync(options);
             await AuthenticationService.Instance.SignInAnonymouslyAsync();
+            Debug.Log($"Player ID: {AuthenticationService.Instance.PlayerId}");
         }
     }
 
@@ -317,6 +320,4 @@ public class KitchenGameLobby : MonoBehaviour
     {
         return joinedLobby;
     }
-
-    
 }

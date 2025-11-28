@@ -15,7 +15,7 @@ public class GameOverUI : MonoBehaviour
         replayBtn.onClick.AddListener(() =>
         {
             NetworkManager.Singleton.Shutdown();
-            Loader.LoadScene(Loader.Scene.GameScene);
+            Loader.LoadScene(Loader.Scene.MainMenuScene);
         });
         Hide();
     }
