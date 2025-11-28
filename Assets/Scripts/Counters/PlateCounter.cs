@@ -1,6 +1,4 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -51,15 +49,22 @@ public class PlateCounter : BaseCounter
     {
         if (!player.HasKitchenObject() && spawnPlateCount > 0)
         {
+            InteractLogicServerRpc(player.GetNetworkObject());
             KitchenObject.SpawnKitchenObject(plateKitchenObjectSO, player);
-            InteractLogicServerRpc();
         }
     }
 
     [ServerRpc(RequireOwnership = false)]
-    private void InteractLogicServerRpc()
+    private void InteractLogicServerRpc(NetworkObjectReference playerNetworkObjectRef)
     {
-        InteractLogicClientRpc();
+        if (playerNetworkObjectRef.TryGet(out NetworkObject playerNetworkObject))
+        {
+            Player player = playerNetworkObject.GetComponent<Player>();
+            if (!player.HasKitchenObject())
+            {
+                InteractLogicClientRpc();
+            }
+        }
     }
 
     [ClientRpc]

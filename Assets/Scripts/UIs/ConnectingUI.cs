@@ -20,7 +20,7 @@ namespace UIs
 
         private void KitchenGameMultiplayer_OnTryingToJoinGame(object sender, EventArgs e)
         {
-            Debug.Log("Showing Connecting UI");
+            //Debug.Log("Showing Connecting UI");
             Show();
         }
 

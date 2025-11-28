@@ -55,7 +55,7 @@ public class DeliveryManager : NetworkBehaviour
         OnRecipeSpawned?.Invoke(this, EventArgs.Empty);
     }
 
-    public void DeliverRecipe(PlateKitchenObject plateKitchenObject)
+    public void DeliverRecipe(PlateKitchenObject plateKitchenObject, Player player)
     {
         for (int i = 0; i < waitingRecipeSOList.Count; i++)
         {
@@ -92,27 +92,38 @@ public class DeliveryManager : NetworkBehaviour
             if (everyIngredientMatched)
             {
                 //Debug.Log("Delivery Success");
-                RecipeDeliverSuccessServerRpc(i);
+                RecipeDeliverSuccessServerRpc(i, player.NetworkObject);
                 return;
             }
         }
 
         // Recipe not matched at all
         Debug.Log("Delivery Fail");
-        RecipeDeliverFailureServerRpc();
+        RecipeDeliverFailureServerRpc(player.NetworkObject);
 
     }
 
     [ServerRpc(RequireOwnership = false)]
-    private void RecipeDeliverSuccessServerRpc(int recipeIndex)
+    private void RecipeDeliverSuccessServerRpc(int recipeIndex, NetworkObjectReference playerNetworkObjectRef)
     {
-
+        Player player = playerNetworkObjectRef.TryGet(out NetworkObject playerNetworkObject) ?
+            playerNetworkObject.GetComponent<Player>() : null;
+        if (!player.HasKitchenObject())
+        {
+            return;
+        }
         RecipeDeliverSuccessClientRpc(recipeIndex);
     }
 
     [ServerRpc(RequireOwnership = false)]
-    private void RecipeDeliverFailureServerRpc()
+    private void RecipeDeliverFailureServerRpc(NetworkObjectReference playerNetworkObjectRef)
     {
+        Player player = playerNetworkObjectRef.TryGet(out NetworkObject playerNetworkObject) ?
+            playerNetworkObject.GetComponent<Player>() : null;
+        if (!player.HasKitchenObject())
+        {
+            return;
+        }
         RecipeDeliverFailureClientRpc();
     }
 
