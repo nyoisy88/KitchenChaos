@@ -49,8 +49,8 @@ public class KitchenGameLobby : MonoBehaviour
 
     private void HandlePeriodicLobbyRefresh()
     {
-        if (SceneManager.GetActiveScene().name != Loader.Scene.LobbyScene.ToString() 
-            || joinedLobby != null || !AuthenticationService.Instance.IsSignedIn)
+        if (SceneManager.GetActiveScene().name != Loader.Scene.LobbyScene.ToString()
+            || !AuthenticationService.Instance.IsSignedIn)
         {
             return;
         }
@@ -267,6 +267,8 @@ public class KitchenGameLobby : MonoBehaviour
     {
         if (!IsLobbyHost())
         {
+            // Only the host can delete the lobby, other players just leave
+            LeaveLobby();
             return;
         }
         try

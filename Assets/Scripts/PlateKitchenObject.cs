@@ -45,6 +45,13 @@ public class PlateKitchenObject : KitchenObject
     [ServerRpc(RequireOwnership = false)]
     private void AddIngredientServerRpc(int kitchenObjectSOIndex)
     {
+        if (kitchenObjectSOList.Contains(
+            KitchenGameMultiplayer.Instance.GetKitchenObjectSOFromIndex(kitchenObjectSOIndex)
+            ))
+        {
+            // Server side check
+            return;
+        }
         AddIngredientClientRpc(kitchenObjectSOIndex);
     }
 

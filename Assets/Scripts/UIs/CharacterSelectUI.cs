@@ -16,8 +16,8 @@ namespace UIs
         {
             mainMenuBtn.onClick.AddListener(() =>
             {
+                KitchenGameLobby.Instance.DeleteLobby();
                 NetworkManager.Singleton.Shutdown();
-                KitchenGameLobby.Instance.LeaveLobby();
                 Loader.LoadScene(Loader.Scene.MainMenuScene);
             });
 

@@ -8,9 +8,17 @@ using UnityEngine.UI;
 
 public class LobbyMessageUI : MonoBehaviour
 {
+    public static LobbyMessageUI Instance { get; private set; }
+
     [SerializeField] private TextMeshProUGUI messageText;
     [SerializeField] private Button closeBtn;
 
+    public event Action OnCloseBtnAction;
+
+    private void Awake()
+    {
+        Instance = this;
+    }
     private void Start()
     {
         KitchenGameLobby.Instance.OnCreateLobbyStarted += KitchenGameLobby_OnCreateLobbyStarted;
@@ -63,10 +71,12 @@ public class LobbyMessageUI : MonoBehaviour
     private void Show()
     {
         gameObject.SetActive(true);
+        closeBtn.Select();
     }
     private void Hide()
     {
         gameObject.SetActive(false);
+        OnCloseBtnAction?.Invoke();
     }
 
     private void OnDestroy()

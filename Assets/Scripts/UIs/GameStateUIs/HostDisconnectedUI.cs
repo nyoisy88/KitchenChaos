@@ -12,6 +12,7 @@ public class HostDisconnectedUI : MonoBehaviour
 
         replayBtn.onClick.AddListener(() =>
         {
+            KitchenGameLobby.Instance.DeleteLobby();
             NetworkManager.Singleton.Shutdown();
             Loader.LoadScene(Loader.Scene.MainMenuScene);
         });
@@ -31,6 +32,7 @@ public class HostDisconnectedUI : MonoBehaviour
     private void Show()
     {
         gameObject.SetActive(true);
+        replayBtn.Select();
     }
 
     private void Hide()

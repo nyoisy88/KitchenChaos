@@ -12,6 +12,7 @@ public class MainMenuUI : MonoBehaviour
 
     private void Start()
     {
+        startMultiplayerBtn.Select();
         startMultiplayerBtn.onClick.AddListener(() =>
         {
             KitchenGameMultiplayer.IsMultiplayerMode = true;

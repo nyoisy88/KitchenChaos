@@ -32,6 +32,15 @@ public class KitchenObject : NetworkBehaviour
     [ServerRpc(RequireOwnership = false)]
     private void SetKitchenObjectParentServerRpc(NetworkObjectReference kitchenObjectParentNetworkObjectRef)
     {
+        if (kitchenObjectParentNetworkObjectRef.TryGet(out NetworkObject kitchenObjectParentNetworkObject))
+        {
+            IKitchenObjectParent kitchenObjectParent = kitchenObjectParentNetworkObject.GetComponent<IKitchenObjectParent>();
+            if (kitchenObjectParent.HasKitchenObject())
+            {
+                Debug.LogError("This kitchenObjectParent already has kitchen object!");
+                return;
+            }
+        }
         SetKitchenObjectParentClientRpc(kitchenObjectParentNetworkObjectRef);
     }
 

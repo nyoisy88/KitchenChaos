@@ -13,10 +13,10 @@ namespace UIs
         [SerializeField] private Button quickJoinBtn;
         [SerializeField] private Button joinCodeBtn;
         [SerializeField] private TMP_InputField joinCodeInputField;
-        [SerializeField] private LobbyCreateUI lobbyCreateUI;
         [SerializeField] private TMP_InputField playerNameTxt;
         [SerializeField] private Transform lobbyListContainer;
         [SerializeField] private Transform lobbyTemplate;
+        [SerializeField] private LobbyCreateUI lobbyCreateUI;
 
         private void Awake()
         {
@@ -27,7 +27,7 @@ namespace UIs
             });
             createLobbyBtn.onClick.AddListener(() =>
             {
-                lobbyCreateUI.Show();
+                lobbyCreateUI.Show(OnLobbyCreateUIClosed);
             });
             quickJoinBtn.onClick.AddListener(() =>
             {
@@ -39,10 +39,13 @@ namespace UIs
                 KitchenGameLobby.Instance.JoinLobbyWithCode(joinCode);
             });
             lobbyTemplate.gameObject.SetActive(false);
+            createLobbyBtn.Select();
         }
 
         private void Start()
         {
+            LobbyMessageUI.Instance.OnCloseBtnAction += LobbyMessageUI_onCloseBtnAction;
+
             playerNameTxt.text = KitchenGameMultiplayer.Instance.PlayerName;
             playerNameTxt.onValueChanged.AddListener((string newText) =>
             {
@@ -50,6 +53,15 @@ namespace UIs
             });
             KitchenGameLobby.Instance.OnLobbyListChanged += KitchenGameLobby_OnLobbyListChanged;
             UpdateLobbies(new List<Lobby>());
+        }
+
+        private void LobbyMessageUI_onCloseBtnAction()
+        {
+            if (lobbyCreateUI.gameObject.activeSelf)
+            {
+                return;
+            }
+            createLobbyBtn.Select();
         }
 
         private void KitchenGameLobby_OnLobbyListChanged(object sender, KitchenGameLobby.LobbyListChangedEventArgs e)
@@ -75,6 +87,11 @@ namespace UIs
         private void OnDestroy()
         {
             KitchenGameLobby.Instance.OnLobbyListChanged -= KitchenGameLobby_OnLobbyListChanged;
+        }
+
+        private void OnLobbyCreateUIClosed()
+        {
+            createLobbyBtn.Select();
         }
     }
 }

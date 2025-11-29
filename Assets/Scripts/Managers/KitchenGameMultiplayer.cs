@@ -21,7 +21,7 @@ public class KitchenGameMultiplayer : NetworkBehaviour
         }
     }
 
-    public static bool IsMultiplayerMode;
+    public static bool IsMultiplayerMode = true;
     public event EventHandler OnTryingToJoinGame;
     public event EventHandler OnFailedToJoinGame;
     public event EventHandler OnPlayerDataNetworkListChanged;
@@ -36,12 +36,14 @@ public class KitchenGameMultiplayer : NetworkBehaviour
     {
         Instance = this;
         DontDestroyOnLoad(gameObject);
+        
+        string[] args = System.Environment.GetCommandLineArgs();
 
         playerName = PlayerPrefs.GetString(PLAYER_PREFS_PLAYER_NAME_MULTIPLAYER, "Player" + UnityEngine.Random.Range(1000, 9999).ToString());
         playerDataNetworkList = new NetworkList<PlayerData>();
         playerDataNetworkList.OnListChanged += KitchenGameMultiplayer_OnPlayerDataNetworkListChanged;
-
     }
+
 
     private void Start()
     {
@@ -73,16 +75,12 @@ public class KitchenGameMultiplayer : NetworkBehaviour
                 {
                     clientId = connectionEventData.ClientId,
                     colorIndex = GetFirstUnusedColor(),
-                    playerName = (IsHost? playerName : ""),
-                    playerId = IsHost? AuthenticationService.Instance.PlayerId : ""
+                    playerName = (IsHost ? playerName : ""),
+                    playerId = IsHost ? AuthenticationService.Instance.PlayerId : ""
                 });
                 Debug.Log($"Client connected: {connectionEventData.ClientId}");
                 break;
             case ConnectionEvent.ClientDisconnected:
-                if (!NetworkManager.Singleton.IsConnectedClient)
-                {
-                    return;
-                }
                 foreach (PlayerData playerData in playerDataNetworkList)
                 {
                     if (playerData.clientId == connectionEventData.ClientId)
